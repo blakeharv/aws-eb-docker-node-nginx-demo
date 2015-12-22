@@ -1,0 +1,95 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "volumes": [
+    {
+      "name": "node-alpha",
+      "host": {
+        "sourcePath": "/var/app/current/node-alpha"
+      }
+    },
+    {
+      "name": "node-beta",
+      "host": {
+        "sourcePath": "/var/app/current/node-beta"
+      }
+    },
+    {
+      "name": "static-files",
+      "host": {
+        "sourcePath": "/var/app/current/static"
+      }
+    },
+    {
+      "name": "nginx-proxy",
+      "host": {
+        "sourcePath": "/var/app/current/nginx-proxy/conf.d"
+      }
+    } 
+  ],
+  "containerDefinitions": [
+    {
+      "name": "node-alpha",
+      "image": "node:latest",
+      "essential": true,
+      "memory": 128,
+      "command": [
+        "/bin/bash",
+        "/usr/src/app/run.sh"
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "node-alpha",
+          "containerPath": "/usr/src/app"
+        }
+      ]
+    },
+    {
+      "name": "node-beta",
+      "image": "node:latest",
+      "essential": true,
+      "memory": 128,
+      "command": [
+        "/bin/bash",
+        "/usr/src/app/run.sh"
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "node-beta",
+          "containerPath": "/usr/src/app"
+        }
+      ]
+    },
+    {
+      "name": "nginx-proxy",
+      "image": "nginx",
+      "essential": true,
+      "memory": 128,
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 80
+        }
+      ],
+      "links": [
+        "node-alpha",
+        "node-beta"
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "awseb-logs-nginx-proxy",
+          "containerPath": "/var/log/nginx"
+        },
+        {
+          "sourceVolume": "nginx-proxy",
+          "containerPath": "/etc/nginx/conf.d",
+          "readOnly": true
+        },
+        {
+          "sourceVolume": "static-files",
+          "containerPath": "/www/static",
+          "readOnly": true
+        }
+      ]
+    }
+  ]
+}
